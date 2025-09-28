@@ -1,0 +1,34 @@
+/* ============ SpecScout Styles ============ */
+
+:root {
+  --muted: #6c757d;
+  --bg: #f7f7fb;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+}
+
+.brand {
+  font-weight: 800;
+  letter-spacing: .3px;
+}
+
+.card-img-top {
+  object-fit: cover;
+  height: 160px;
+}
+
+.muted { color: var(--muted); }
+
+/* Controls row spacing on small screens */
+#controls .form-label { font-size: .85rem; }
+#controls .form-check-label { font-size: .9rem; }
+
+/* Favorite badge hover */
+.fav-badge { text-decoration: none; }
+.fav-badge:hover { filter: brightness(0.95); }
