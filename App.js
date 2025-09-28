@@ -263,3 +263,99 @@ $(function(){
   // Filters / sorting
   $('#filter-manufacturer, #filter-laptops, #sort-by').on('change', renderFiltered);
 });
+
+// -------- Autocomplete (Typeahead) --------
+let suggestTimer = null;
+let activeIndex = -1;
+let currentXhr = null;
+
+const $input = $("#model-input");
+const $list = $("#typeahead");
+
+// Debounce helper
+function debounce(fn, ms) {
+  return function (...args) {
+    clearTimeout(suggestTimer);
+    suggestTimer = setTimeout(() => fn.apply(this, args), ms);
+  };
+}
+
+// Render suggestions
+function renderSuggestions(items) {
+  $list.empty();
+  activeIndex = -1;
+  if (!items || !items.length) {
+    $list.addClass("d-none");
+    return;
+  }
+  items.forEach((it, i) => {
+    const text = it.label || it.id;
+    const $li = $(
+      `<li class="list-group-item d-flex justify-content-between align-items-center"
+            data-qid="${escHtml(it.id)}" data-label="${escHtml(text)}">
+         <span>${escHtml(text)}</span>
+         <span class="badge text-bg-light">${escHtml(it.id)}</span>
+       </li>`
+    );
+    $list.append($li);
+  });
+  $list.removeClass("d-none");
+}
+
+// Fetch suggestions via wbsearchentities (en → he fallback)
+function fetchSuggestions(q) {
+  if (currentXhr && currentXhr.abort) currentXhr.abort();
+  // קודם אנגלית
+  currentXhr = entitySearch(q, "en")
+    .then(res => (res && res.search) ? res.search : [])
+    .then(list => list.length ? list : entitySearch(q, "he").then(r2 => (r2 && r2.search) ? r2.search : []))
+    .then(list => renderSuggestions(list))
+    .catch(() => renderSuggestions([]));
+}
+
+const debouncedSuggest = debounce(function () {
+  const q = $input.val().trim();
+  if (q.length < 3) { renderSuggestions([]); return; }
+  fetchSuggestions(q);
+}, 300);
+
+// Click on suggestion
+$list.on("click", ".list-group-item", function () {
+  const label = $(this).data("label");
+  $input.val(label);
+  renderSuggestions([]);
+  $("#search-form").trigger("submit");
+});
+
+// Keyboard navigation
+$input.on("keydown", function (e) {
+  const $items = $list.children(".list-group-item");
+  const open = !$list.hasClass("d-none");
+
+  if (e.key === "ArrowDown" && open) {
+    e.preventDefault();
+    activeIndex = (activeIndex + 1) % $items.length;
+    $items.removeClass("active").eq(activeIndex).addClass("active");
+    $items.eq(activeIndex)[0]?.scrollIntoView({ block: "nearest" });
+  } else if (e.key === "ArrowUp" && open) {
+    e.preventDefault();
+    activeIndex = (activeIndex - 1 + $items.length) % $items.length;
+    $items.removeClass("active").eq(activeIndex).addClass("active");
+    $items.eq(activeIndex)[0]?.scrollIntoView({ block: "nearest" });
+  } else if (e.key === "Enter" && open && activeIndex >= 0) {
+    e.preventDefault();
+    $items.eq(activeIndex).trigger("click");
+  } else if (e.key === "Escape" && open) {
+    renderSuggestions([]);
+  }
+});
+
+// Input typing → debounce
+$input.on("input", debouncedSuggest);
+
+// Click outside closes
+$(document).on("click", function (e) {
+  if (!$(e.target).closest("#model-input, #typeahead").length) {
+    renderSuggestions([]);
+  }
+});

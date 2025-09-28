@@ -38,12 +38,17 @@
     <!-- טופס חיפוש דגם מחשב -->
     <form id="search-form" class="row g-2 align-items-center">
       <div class="col-sm-8 col-md-6">
-        <label for="model-input" class="form-label visually-hidden">חפש דגם</label>
-        <div class="input-group">
-          <span class="input-group-text"><i class="bi bi-search"></i></span>
-          <input id="model-input" type="text" class="form-control" placeholder="הקלד/י שם מחשב ודגם (לדוגמה: ThinkPad X1 Carbon Gen 9 או Dell XPS 13)" required />
-        </div>
-      </div>
+  <label for="model-input" class="form-label visually-hidden">חפש דגם</label>
+  <div class="input-group position-relative">
+    <span class="input-group-text"><i class="bi bi-search"></i></span>
+    <input id="model-input" type="text" class="form-control"
+           placeholder="הקלד/י שם מחשב ודגם (ThinkPad X1 Carbon / Dell XPS 13)" autocomplete="off" />
+    <!-- Suggestions -->
+    <ul id="typeahead" class="list-group position-absolute w-100 d-none"
+        style="top:100%; right:0; z-index: 1100;"></ul>
+  </div>
+</div>
+
       <div class="col-auto">
         <button id="search-btn" type="submit" class="btn btn-primary">חיפוש</button>
       </div>
